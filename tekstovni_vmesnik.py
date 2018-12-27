@@ -45,8 +45,8 @@ def izpisi_uporabnike():
 
         uporabnik = uporabniki[i]
         print("%3i Ime: %s Priimek: %s Uporabniško ime: %s" %
-            (uporabnik[0], uporabnik[1], uporabnik[2], uporabnik[5]))
-        print("    Email: %s" % (uporabnik[3]))
+            (uporabnik['id'], uporabnik['ime'], uporabnik['priimek'], uporabnik['uporabnisko_ime']))
+        print("    Email: %s" % (uporabnik['email']))
 
 def dodaj_kolo():
     # Dodaj novo kolo v bazo
@@ -73,7 +73,8 @@ def izpis_koles():
                 break
 
         kolo = kolesa[i]
-        print("%3i Tip: %s Znamka: %s Model: %s Velikost: %s" % (kolo[0], kolo[3], kolo[4], kolo[5], kolo[1]))
+        print("%3i Tip: %s Znamka: %s Model: %s Velikost: %s" %
+            (kolo['id'], kolo['tip'], kolo['znamka'], kolo['model'], kolo['serijska_stevilka']))
 
 def pokazi_moznosti():
     # Prikaži menu

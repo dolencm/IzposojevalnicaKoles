@@ -9,6 +9,14 @@ conn = sqlite3.connect('izposojevalnica.db')
 conn.execute('PRAGMA foreign_keys = ON')
 baza.ustvari_bazo_ce_ne_obstaja(conn)
 
+def dictionary_factory(cur, row):
+    dict = {}
+    for idx, col in enumerate(cur.description):
+        dict[col[0]] = row[idx]
+    return dict
+
+conn.row_factory = dictionary_factory
+
 def dodaj_uporabnika(ime, priimek, email, stevilka_osebne, uporabnisko_ime, geslo):
     # Doda novega uporabnika v tabelo uporabnik
     sol = random.randint(1, 100000000)
@@ -25,21 +33,13 @@ def dodaj_uporabnika(ime, priimek, email, stevilka_osebne, uporabnisko_ime, gesl
 def vrni_uporabnike():
     # Vrne seznam uporabnike
     return conn.execute("""
-        SELECT
-            id, ime, priimek, email, stevilka_osebne, uporabnisko_ime, prijavni_zeton, sol
-        FROM
-            uporabniki
+        SELECT * FROM uporabniki
     """).fetchall()
 
 def podatki_uporabnika(uporabnisko_ime, geslo):
     # Prebere podatke za danim uporabniškim imenom
     uporabnik = conn.execute("""
-        SELECT
-            id, ime, priimek, email, stevilka_osebne, uporabnisko_ime, prijavni_zeton, sol
-        FROM
-            uporabniki
-        WHERE
-            uporabnisko_ime = ?
+        SELECT * FROM uporabniki WHERE uporabnisko_ime = ?
     """, [uporabnisko_ime]).fetchall()
 
 def dodaj_kolo(velikost, serijska_stevilka, tip, znamka, model, slika, lokacija):
@@ -55,12 +55,7 @@ def dodaj_kolo(velikost, serijska_stevilka, tip, znamka, model, slika, lokacija)
 def vrni_kolesa_na_lokaciji(lokacija):
     # Vrne podatke o kolesih na lokaciji
     return conn.execute("""
-        SELECT
-            id, velikost, serijska_stevilka, tip, znamka, model, slika
-        FROM
-            kolesa
-        WHERE
-            lokacija = ?
+        SELECT * FROM kolesa WHERE lokacija = ?
     """, [lokacija]).fetchall()
 
 def commit():
