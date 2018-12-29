@@ -1,8 +1,6 @@
 # coding=utf8
 
 import sqlite3
-import hashlib
-import random
 import baza
 
 conn = sqlite3.connect('izposojevalnica.db')
@@ -17,11 +15,8 @@ def dictionary_factory(cur, row):
 
 conn.row_factory = dictionary_factory
 
-def dodaj_uporabnika(ime, priimek, email, stevilka_osebne, uporabnisko_ime, geslo):
+def dodaj_uporabnika(ime, priimek, email, stevilka_osebne, uporabnisko_ime, prijavni_zeton, sol):
     # Doda novega uporabnika v tabelo uporabnik
-    sol = random.randint(1, 100000000)
-    prijavni_zeton = hashlib.sha256((geslo + str(sol)).encode()).hexdigest()
-    
     with conn:
         conn.execute("""
             INSERT INTO uporabniki
@@ -36,11 +31,11 @@ def vrni_uporabnike():
         SELECT * FROM uporabniki
     """).fetchall()
 
-def podatki_uporabnika(uporabnisko_ime, geslo):
+def podatki_uporabnika(uporabnisko_ime):
     # Prebere podatke za danim uporabniškim imenom
-    uporabnik = conn.execute("""
+    return conn.execute("""
         SELECT * FROM uporabniki WHERE uporabnisko_ime = ?
-    """, [uporabnisko_ime]).fetchall()
+    """, [uporabnisko_ime]).fetchone()
 
 def dodaj_kolo(velikost, serijska_stevilka, tip, znamka, model, slika, lokacija):
     # Doda novo kolo na lokacijo

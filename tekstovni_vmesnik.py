@@ -1,7 +1,9 @@
 # coding=utf8
 
+import random
 import getpass
 import modeli
+import pomozne
 
 def izberi_moznost(moznosti):
     # Izbira možnosti iz menuja
@@ -23,14 +25,17 @@ def dodaj_uporabnika():
     uporabnisko_ime = input('Uporabniško ime: ')
     email = input('Email: ')
     stevilka_osebne = input('Številka osebne izkaznice: ')
-    
+
     geslo = getpass.getpass('Geslo: ')
     geslo2 = getpass.getpass('Ponovi geslo: ')
     if geslo != geslo2:
         print('Gesli se ne ujemata!')
         return False
-    
-    modeli.dodaj_uporabnika(ime, priimek, email, stevilka_osebne, uporabnisko_ime, geslo)
+
+    sol = random.randint(1, 100000000)
+    prijavni_zeton = pomozne.kriptiraj_geslo(geslo, sol)
+
+    modeli.dodaj_uporabnika(ime, priimek, email, stevilka_osebne, uporabnisko_ime, prijavni_zeton, sol)
     return True
     
 def izpisi_uporabnike():
