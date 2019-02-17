@@ -1,6 +1,8 @@
 # coding=utf8
 
 import csv
+import random
+import pomozne
 
 def pobrisi_tabele(conn):
     # Pobriše vse tabele iz baze
@@ -21,7 +23,8 @@ def ustvari_tabele(conn):
             stevilka_osebne INTEGER NOT NULL,
             uporabnisko_ime VARCHAR NOT NULL,
             prijavni_zeton VARCHAR NOT NULL,
-            sol INTEGER NOT NULL
+            sol INTEGER NOT NULL,
+            tip INTEGER NOT NULL
         )
     """)
     
@@ -76,9 +79,25 @@ def ustvari_tabele(conn):
         )
     """)
 
+def uvozi_uporabnike(conn):
+    # Uvozi uporabnike
+    with open('podatki/uporabniki.csv', encoding='utf-8') as datoteka:
+        podatki = csv.reader(datoteka)
+        stolpci = next(podatki)
+
+        poizvedba = """
+            INSERT INTO uporabniki VALUES ({})
+        """.format(', '.join(["?"] * (len(stolpci) - 1)))
+        for vrstica in podatki:
+            sol = random.randint(1, 100000000)
+            vrstica[6] = pomozne.kriptiraj_geslo(vrstica[9], sol)
+            vrstica[7] = sol
+            del vrstica[9]
+            conn.execute(poizvedba, vrstica)
+
 def uvozi_lokacije(conn):
     # Uvozi lokacije
-    with open('podatki/lokacije.csv') as datoteka:
+    with open('podatki/lokacije.csv', encoding='utf-8') as datoteka:
         podatki = csv.reader(datoteka)
         stolpci = next(podatki)
 
@@ -88,12 +107,26 @@ def uvozi_lokacije(conn):
         for vrstica in podatki:
             conn.execute(poizvedba, vrstica)
 
+def uvozi_kolesa(conn):
+    # Uvozi kolesa
+    with open('podatki/kolesa.csv', encoding='utf-8') as datoteka:
+        podatki = csv.reader(datoteka)
+        stolpci = next(podatki)
+        
+        poizvedba = """
+            INSERT INTO kolesa VALUES ({})
+        """.format(', '.join(["?"] * len(stolpci)))
+        for vrstica in podatki:
+            conn.execute(poizvedba, vrstica)
+
 def ustvari_bazo(conn):
     # Postavi bazo
     pobrisi_tabele(conn)
     ustvari_tabele(conn)
 
+    uvozi_uporabnike(conn)
     uvozi_lokacije(conn)
+    uvozi_kolesa(conn)
 
 def ustvari_bazo_ce_ne_obstaja(conn):
     # Ustvari bazo, če ta še ne obstaja

@@ -3,6 +3,7 @@
 import random
 import getpass
 import modeli
+from modeli import Uporabnik
 import pomozne
 
 def izberi_moznost(moznosti):
@@ -17,7 +18,7 @@ def izberi_moznost(moznosti):
             if 1 <= n <= len(moznosti):
                 return n
 
-def dodaj_uporabnika():
+def dodaj_uporabnika(tip):
     # Vnos podatkov o uporabniku
     print('Vnesi podatke o uporabniku')
     ime = input('Ime: ')
@@ -35,9 +36,9 @@ def dodaj_uporabnika():
     sol = random.randint(1, 100000000)
     prijavni_zeton = pomozne.kriptiraj_geslo(geslo, sol)
 
-    modeli.dodaj_uporabnika(ime, priimek, email, stevilka_osebne, uporabnisko_ime, prijavni_zeton, sol)
+    modeli.dodaj_uporabnika(ime, priimek, email, stevilka_osebne, uporabnisko_ime, prijavni_zeton, sol, tip)
     return True
-    
+
 def izpisi_uporabnike():
     # Izpis podatkov o uporabnikih
     print('Podatki o uporabnikih')
@@ -60,7 +61,7 @@ def dodaj_kolo():
     znamka = input('Znamka: ')
     model = input('Model: ')
     lokacija = int(input('Lokacija: '))
-    serijska_stevilka = input('Serijska stevilka: ')
+    serijska_stevilka = input('Serijska številka: ')
     velikost = input('Velikost okvirja: ')
 
     modeli.dodaj_kolo(velikost, serijska_stevilka, tip, znamka, model, '', lokacija)
@@ -86,21 +87,24 @@ def pokazi_moznosti():
     print(50 * '-')
     izbira = izberi_moznost([
         'dodaj uporabnika',
-        'izpisi uporabnike',
+        'dodaj administratorja',
+        'izpiši uporabnike',
         'dodaj kolo',
         'izpisi kolesa',
         'izhod'
     ])
 
     if izbira == 1:
-        dodaj_uporabnika()
+        dodaj_uporabnika(Uporabnik.NAVADEN)
     elif izbira == 2:
-        izpisi_uporabnike()
+        dodaj_uporabnika(Uporabnik.ADMINISTRATOR)
     elif izbira == 3:
-        dodaj_kolo()
+        izpisi_uporabnike()
     elif izbira == 4:
-        izpis_koles()
+        dodaj_kolo()
     elif izbira == 5:
+        izpis_koles()
+    elif izbira == 6:
         exit()
 
 def main():

@@ -1,0 +1,3 @@
+id,ime,priimek,email,stevilka_osebne,uporabnisko_ime,prijavni_zeton,sol,tip,geslo
+1,Marko,Dolenc,marko@bla.com,53245,marko,,,1,password
+2,Janez,Kranjski,janez@bla.com,41236,janez,,,0,password
