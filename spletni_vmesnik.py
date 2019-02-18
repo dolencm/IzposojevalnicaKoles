@@ -3,6 +3,7 @@
 from bottle import get, post, redirect, run, template, request, response, static_file
 import random
 import bottle
+from datetime import datetime
 import modeli
 from modeli import Uporabnik
 import pomozne
@@ -13,17 +14,27 @@ bottle.TEMPLATE_PATH.insert(0, './pogledi')
 def slike(pot):
     return static_file(pot, root='slike')
 
+@get('/assets/<pot:re:.*\.(js|css)>')
+def slike(pot):
+    return static_file(pot, root='assets')
+
 @get('/')
 def indeks():
+    pomozne.vrni_sejo()
+    minDate = date.today().strftime('%Y, %m - 1, %d')
+
     lokacije = modeli.vrni_lokacije()
-    return template('indeks', lokacije = lokacije)
+    return template('indeks', lokacije = lokacije, minDate = minDate)
 
 @get('/registracija')
 def registracija():
+    pomozne.vrni_sejo()
     return template('registracija')
 
 @post('/registracija')
 def registracija_post():
+    pomozne.vrni_sejo()
+
     geslo = request.forms.get('geslo')
     potrditev = request.forms.get('potrditev')
     if geslo != potrditev:
@@ -44,10 +55,13 @@ def registracija_post():
 
 @get('/prijava')
 def prijava():
+    pomozne.vrni_sejo()
     return template('prijava')
 
 @post('/prijava')
 def prijava_post():
+    pomozne.vrni_sejo()
+
     uporabnisko_ime = request.forms.get('uporabnisko_ime')
     uporabnik = modeli.podatki_uporabnika(uporabnisko_ime)
 
@@ -59,8 +73,7 @@ def prijava_post():
     if uporabnik['prijavni_zeton'] != zeton:
         return template('prijava')
 
-    id = pomozne.generiraj_sejo(uporabnisko_ime)
-    response.set_cookie('seja', id)
+    pomozne.dodaj_uporabnika_v_sejo(uporabnisko_ime)
 
     if uporabnik['tip'] == Uporabnik.ADMINISTRATOR:
         return redirect('/admin')
@@ -69,7 +82,12 @@ def prijava_post():
 
 @post('/izbira_kolesa')
 def izbira_kolesa():
+    pomozne.vrni_sejo()
+
+    format = '%Y-%m-%dT%H:%M:%S.%fZ'
     lokacija = request.forms.get('lokacija')
+    od = datetime.strptime(request.forms.get('datum_od'), format).date()
+    do = datetime.strptime(request.forms.get('datum_do'), format).date()
 
     kolesa = modeli.vrni_kolesa()
 
@@ -77,7 +95,9 @@ def izbira_kolesa():
 
 @get('/admin')
 def admin():
-    uporabnisko_ime = pomozne.vrni_uporabnika_iz_seje(request.get_cookie('seja'))
+    pomozne.vrni_sejo()
+
+    uporabnisko_ime = pomozne.vrni_uporabnika_iz_seje()
     uporabnik = modeli.podatki_uporabnika(uporabnisko_ime)
 
     if uporabnik == None or uporabnik['tip'] != Uporabnik.ADMINISTRATOR:

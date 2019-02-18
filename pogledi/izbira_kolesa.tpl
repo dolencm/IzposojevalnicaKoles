@@ -1,19 +1,27 @@
 % rebase('osnova')
 
-<script>
-const calendars = bulmaCalendar.attach('[type="date"]', {});
-console.log(bulmaCalendar);
-</script>
-<h1 class="title">Izbira kolesa</h1>
-
-<input type="date" name="datum_od" data-display-mode="inline"/>
-
-<input type="file" accept="image/png, image/jpeg"/>
-
-<p>
-<img src="slike/900_pro.jpg">
-</p>
-
+<h1 class="title">Katero kolo želite?</h1>
+<table class="table is-striped">
+    <thead>
+        <tr>
+            <th>Znamka</th>
+            <th>Model</th>
+            <th>Tip</th>
+            <th>Velikost</th>
+            <th>Slika</th>
+            <th></td>
+        </tr>
+    </thead>
+    <tbody>
 % for kolo in kolesa:
-<p>{{ kolo['znamka'] }} {{ kolo['tip'] }}</h1>
+<tr>
+    <td>{{ kolo['znamka'] }}</td>
+    <td>{{ kolo['model'] }}</td>
+    <td>{{ kolo['tip'] }}</td>
+    <td>{{ kolo['velikost'] }}</td>
+    <td><figure class="image"><img src="slike/{{ kolo['slika'] }}"></figure></td>
+    <td><button type="submit" class="button is-primary">Izberi!</button></td>
+</tr>
 % end
+    </tbody>
+</table>

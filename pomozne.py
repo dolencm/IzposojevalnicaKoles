@@ -1,5 +1,6 @@
 # coding=utf8
 
+from bottle import request, response
 import hashlib
 import random
 import datetime
@@ -9,20 +10,29 @@ seje = {}
 def kriptiraj_geslo(geslo, sol):
     return hashlib.sha256((geslo + str(sol)).encode()).hexdigest()
 
-def generiraj_sejo(uporabnisko_ime):
-    rnd = random.randint(1, 100000000)
-    kljuc = uporabnisko_ime + str(rnd) + str(datetime.datetime.now())
-    
-    id = hashlib.sha256(kljuc.encode()).hexdigest()
-    
+def vrni_sejo():
     global seje
-    seje[id] = uporabnisko_ime
-    
+
+    id = request.get_cookie('seja')
+    if id not in seje:
+        rnd = random.randint(1, 100000000)
+        kljuc = str(rnd) + str(datetime.datetime.now())
+
+        id = hashlib.sha256(kljuc.encode()).hexdigest()
+        seje[id] = {}
+        response.set_cookie('seja', id)
+
     return id
 
-def vrni_uporabnika_iz_seje(id):
+def dodaj_uporabnika_v_sejo(uporabnik):
     global seje
-    if id in seje:
-        return seje[id]
+    seje[vrni_sejo()]['uporabnik'] = uporabnik
+
+def vrni_uporabnika_iz_seje():
+    global seje
+
+    seja = seje[vrni_sejo()]
+    if 'uporabnik' in seja:
+        return seja['uporabnik']
     
     return None
