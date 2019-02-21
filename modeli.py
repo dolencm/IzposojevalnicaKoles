@@ -9,7 +9,7 @@ class Uporabnik(enum.IntEnum):
     NAVADEN = 0
     ADMINISTRATOR = 1
 
-class Izposoje(enum.IntEnum):
+class Izposoja(enum.IntEnum):
     AKTIVNA = 0
     ZAKLJUCENA = 1
 
@@ -25,15 +25,15 @@ def dictionary_factory(cur, row):
 
 conn.row_factory = dictionary_factory
 
-def dodaj_uporabnika(ime, priimek, email, stevilka_osebne, uporabnisko_ime, prijavni_zeton, sol, tip):
+def dodaj_uporabnika(ime, lokacija, priimek, email, stevilka_osebne, uporabnisko_ime, prijavni_zeton, sol, tip):
     # Doda novega uporabnika v tabelo uporabnik
     with conn:
         conn.execute("""
             INSERT INTO uporabniki
-                (ime, priimek, email, stevilka_osebne, uporabnisko_ime, prijavni_zeton, sol, tip)
+                (ime, lokacija, priimek, email, stevilka_osebne, uporabnisko_ime, prijavni_zeton, sol, tip)
             VALUES
-                (?, ?, ?, ?, ?, ?, ?, ?)
-        """, [ime, priimek, email, stevilka_osebne, uporabnisko_ime, prijavni_zeton, sol, int(tip)])
+                (?, ?, ?, ?, ?, ?, ?, ?, ?)
+        """, [ime, lokacija, priimek, email, stevilka_osebne, uporabnisko_ime, prijavni_zeton, sol, int(tip)])
 
 def vrni_uporabnike():
     # Vrne seznam uporabnike
@@ -63,11 +63,23 @@ def vrni_kolesa_na_lokaciji(lokacija):
         SELECT * FROM kolesa WHERE lokacija = ?
     """, [lokacija]).fetchall()
 
-def vrni_kolesa():
+def vrni_kolesa(od, do):
     # Vrne vse podatke o vseh kolesih
     return conn.execute("""
-        SELECT * FROM kolesa
-    """).fetchall()
+        SELECT * FROM kolesa WHERE
+            id NOT IN (
+                SELECT kolo
+                FROM rezervacije
+                WHERE datum_od <= ? AND ? <= datum_do
+                    OR datum_od <= ? AND ? <= datum_do
+                    OR ? <= datum_od AND ? >= datum_do)
+            and id NOT IN (
+                SELECT kolo
+                FROM izposoje
+                WHERE status = 0 AND datum_od <= ? AND ? <= datum_do
+                    OR datum_od <= ? AND ? <= datum_do
+                    OR ? <= datum_od AND ? >= datum_do)
+    """, [od, od, do, do, od, do, od, od, do, do, od, do]).fetchall()
 
 def vrni_lokacije():
     # Vrne podatke o vseh lokacijah
@@ -75,8 +87,81 @@ def vrni_lokacije():
         SELECT * FROM lokacije
     """).fetchall()
 
-def vrni_rezervacije():
-    # Vrne rezervacije
+def vrni_lokacijo(id):
+    # Vrne podatke o lokaciji
     return conn.execute("""
-        SELECT * FROM rezervacije
-    """).fetchall()
+        SELECT * FROM lokacije WHERE id = ?
+    """, [id]).fetchone()
+
+def vrni_rezervacije(id):
+    # Vrne rezervacije na lokaciji
+    return conn.execute("""
+        SELECT
+            r.id, r.datum_od, r.datum_do, u.ime, u.priimek, u.stevilka_osebne,
+            k.znamka, k.model, k.serijska_stevilka, l.naziv, k.id as kolo, l.id as lokacija
+        FROM
+            rezervacije r
+            join kolesa k on r.kolo = k.id
+            join uporabniki u on r.uporabnik = u.id
+            join lokacije l on k.lokacija = l.id
+        WHERE
+            r.lokacija = ?
+        ORDER BY
+            r.datum_od asc
+    """, [id]).fetchall()
+
+def vrni_izposoje(id):
+    # Vrne izposojena kolesa na lokaciji
+    return conn.execute("""
+        SELECT
+            i.id, i.datum_od, i.datum_do, u.ime, u.priimek, u.stevilka_osebne,
+            k.znamka, k.model, k.serijska_stevilka
+        FROM
+            izposoje i
+            join kolesa k on i.kolo = k.id
+            join uporabniki u on i.uporabnik = u.id
+        WHERE
+            i.lokacija = ? and status = 0
+        ORDER BY
+            i.datum_do asc
+    """, [id]).fetchall()
+
+def dodaj_rezervacijo(datum_od, datum_do, kolo, lokacija, uporabnik):
+    # Ustvari rezervacijo kolesa za uporabnika
+    with conn:
+        conn.execute("""
+            INSERT INTO rezervacije
+                (datum_od, datum_do, kolo, lokacija, uporabnik)
+            VALUES
+                (?, ?, ?, ?, ?)
+        """, [datum_od, datum_do, kolo, lokacija, uporabnik])
+
+def izposodi_rezervacijo(id):
+    # Izposodi rezervirano kolo
+    with conn:
+        rez = conn.execute("""
+            SELECT * FROM rezervacije WHERE id = ?
+        """, [id]).fetchone()
+        conn.execute("""
+            DELETE FROM rezervacije WHERE id = ?
+        """, [id])
+        conn.execute("""
+            INSERT INTO izposoje
+                (datum_od, datum_do, status, kolo, lokacija, uporabnik)
+            VALUES
+                (?, ?, ?, ?, ?, ?)
+        """, [rez['datum_od'], rez['datum_do'], Izposoja.AKTIVNA, rez['kolo'], rez['lokacija'], rez['uporabnik']])
+
+def zakljuci_izposojo(id):
+    # Označi izposojo za zaključeno
+    with conn:
+        conn.execute("""
+            UPDATE izposoje SET status = 1 WHERE id = ?
+        """, [id])
+
+def prestavi_kolo(id, loc):
+    # Prestavi kolo na novo lokacijo
+    with conn:
+        conn.execute("""
+            UPDATE kolesa SET lokacija = ? WHERE id = ?
+        """, [loc, id])

@@ -14,13 +14,18 @@ let calendars = bulmaCalendar.attach('[type="date"]', {
 });
 
 calendars.on('select', function(dat) {
-    document.getElementById("datum_od").value = dat.data.start.toISOString();
-    document.getElementById("datum_do").value = dat.data.end.toISOString();
+    let d_od = dat.data.start;
+    let d_do = dat.data.end;
+    document.getElementById("datum_od").value = d_od.getFullYear() + '-' + (d_od.getMonth() + 1) + '-' + d_od.getDate();
+    document.getElementById("datum_do").value = d_do.getFullYear() + '-' + (d_do.getMonth() + 1) + '-' + d_do.getDate();
 });
 </script>
 <br>
 <h1 class="title">Kje želite kolesariti?</h1>
 
+<form action="/izbira_kolesa" method="post">
+<input type="hidden" name="datum_od" id="datum_od"/>
+<input type="hidden" name="datum_do" id="datum_do"/>
 <div class="columns">
 % for lokacija in lokacije:
     <div class="column">
@@ -28,13 +33,9 @@ calendars.on('select', function(dat) {
         <p>{{ lokacija['posta'] }} {{ lokacija['kraj'] }}</p>
         <iframe width="450" height="250" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="http://maps.google.com/maps?ll={{ lokacija['zemljepisna_sirina'] }},{{ lokacija['zemljepisna_dolzina'] }}&z=15&output=embed"></iframe>
         <p>
-            <form action="/izbira_kolesa" method="post">
-                <input type="hidden" name="lokacija" value="{{ lokacija['id'] }}"/>
-                <input type="hidden" name="datum_od" id="datum_od"/>
-                <input type="hidden" name="datum_do" id="datum_do"/>
-                <button type="submit" class="button is-primary">Tukaj!</button>
-            </form>
+            <button type="submit" name="lokacija" class="button is-primary" value="{{ lokacija['id'] }}">Tukaj!</button>
         </p>
     </div>
 % end
 </div>
+</form>

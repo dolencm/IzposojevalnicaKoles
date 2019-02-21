@@ -36,3 +36,16 @@ def vrni_uporabnika_iz_seje():
         return seja['uporabnik']
     
     return None
+
+def dodaj_podatke_v_sejo(paket):
+    global seje
+
+    seje[vrni_sejo()]['podatki'] = paket
+
+def vrni_podatke_iz_seje():
+    global seje
+
+    id = vrni_sejo()
+    if id in seje:
+        return seje[id]['podatki']
+    return None

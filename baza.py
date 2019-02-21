@@ -17,6 +17,7 @@ def ustvari_tabele(conn):
     conn.execute("""
         CREATE TABLE uporabniki (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            lokacija INTEGER REFERENCES lokacije(id),
             ime VARCHAR NOT NULL,
             priimek VARCHAR NOT NULL,
             email VARCHAR NOT NULL,
@@ -46,6 +47,7 @@ def ustvari_tabele(conn):
     conn.execute("""
         CREATE TABLE lokacije (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
+            naziv VARCHAR NOT NULL,
             naslov VARCHAR NOT NULL,
             posta INTEGER NOT NULL,
             kraj VARCHAR NOT NULL,
@@ -62,7 +64,7 @@ def ustvari_tabele(conn):
             datum_do DATE NOT NULL,
             kolo INTEGER REFERENCES kolesa(id),
             lokacija INTEGER REFERENCES lokacije(id),
-            uporabnik INTEGER REFERENCES uporabnik(id)
+            uporabnik INTEGER REFERENCES uporabniki(id)
         )
     """)
     
@@ -90,9 +92,9 @@ def uvozi_uporabnike(conn):
         """.format(', '.join(["?"] * (len(stolpci) - 1)))
         for vrstica in podatki:
             sol = random.randint(1, 100000000)
-            vrstica[6] = pomozne.kriptiraj_geslo(vrstica[9], sol)
-            vrstica[7] = sol
-            del vrstica[9]
+            vrstica[7] = pomozne.kriptiraj_geslo(vrstica[10], sol)
+            vrstica[8] = sol
+            del vrstica[10]
             conn.execute(poizvedba, vrstica)
 
 def uvozi_lokacije(conn):
@@ -124,8 +126,8 @@ def ustvari_bazo(conn):
     pobrisi_tabele(conn)
     ustvari_tabele(conn)
 
-    uvozi_uporabnike(conn)
     uvozi_lokacije(conn)
+    uvozi_uporabnike(conn)
     uvozi_kolesa(conn)
 
 def ustvari_bazo_ce_ne_obstaja(conn):

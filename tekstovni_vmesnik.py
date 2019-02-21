@@ -27,6 +27,10 @@ def dodaj_uporabnika(tip):
     email = input('Email: ')
     stevilka_osebne = input('Številka osebne izkaznice: ')
 
+    lokacija = 1
+    if tip == Uporabnik.ADMINISTRATOR:
+        lokacija = input('ID lokacije: ')
+
     geslo = getpass.getpass('Geslo: ')
     geslo2 = getpass.getpass('Ponovi geslo: ')
     if geslo != geslo2:
@@ -36,7 +40,7 @@ def dodaj_uporabnika(tip):
     sol = random.randint(1, 100000000)
     prijavni_zeton = pomozne.kriptiraj_geslo(geslo, sol)
 
-    modeli.dodaj_uporabnika(ime, priimek, email, stevilka_osebne, uporabnisko_ime, prijavni_zeton, sol, tip)
+    modeli.dodaj_uporabnika(ime, lokacija, priimek, email, stevilka_osebne, uporabnisko_ime, prijavni_zeton, sol, tip)
     return True
 
 def izpisi_uporabnike():
