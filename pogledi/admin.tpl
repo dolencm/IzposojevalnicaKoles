@@ -39,9 +39,9 @@
     <td>{{ r['naziv'] }}</td>
     <td>
     % if lokacija['id'] != r['lokacija']:
-        <button class="button is-primary" name="prestavi" value="{{ r['kolo'] }}">Prestavi</button>
+        <button class="button" name="prestavi" value="{{ r['kolo'] }}">Prestavi</button>
     % elif datum_rezervacije <= datum:
-        <button class="button is-primary" name="izposodi" value="{{ r['id'] }}">Izposodi</button>
+        <button class="button" name="izposodi" value="{{ r['id'] }}">Izposodi</button>
     % end
     </td>
 </tr>
@@ -81,10 +81,17 @@
     <td>{{ i['model'] }}</td>
     <td>{{ i['serijska_stevilka'] }}</td>
     <td>
-        <button class="button is-primary" name="vrni" value="{{ i['id'] }}">Vrni</button>
+        <button class="button" name="vrni" value="{{ i['id'] }}">Vrni</button>
     </td>
 </tr>
 % end
     </tbody>
 </table>
 </form>
+
+<br>
+
+<div class="columns">
+<div class="column"><form action="/odjava"><button class="button"">Odjava</button></form></div>
+<div class="column"><form action="/statistika"><button class="button"">Statistika</button></form></div>
+<div>

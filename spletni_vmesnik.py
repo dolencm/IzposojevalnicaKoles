@@ -23,13 +23,16 @@ def indeks():
     pomozne.vrni_sejo()
     minDate = datetime.today().strftime('%Y, %m - 1, %d')
 
+    uporabnisko_ime = pomozne.vrni_uporabnika_iz_seje()
+    uporabnik = modeli.podatki_uporabnika(uporabnisko_ime)
+
     lokacije = modeli.vrni_lokacije()
-    return template('indeks', lokacije = lokacije, minDate = minDate)
+    return template('indeks', lokacije = lokacije, minDate = minDate, uporabnik = uporabnik)
 
 @get('/registracija')
 def registracija():
     pomozne.vrni_sejo()
-    return template('registracija')
+    return template('registracija', napaka = None)
 
 @post('/registracija')
 def registracija_post():
@@ -38,7 +41,7 @@ def registracija_post():
     geslo = request.forms.get('geslo')
     potrditev = request.forms.get('potrditev')
     if geslo != potrditev:
-        return template('registracija')
+        return template('registracija', napaka = "Gesli se ne ujemata!")
 
     ime = request.forms.get('ime')
     priimek = request.forms.get('priimek')
@@ -46,12 +49,23 @@ def registracija_post():
     email = request.forms.get('email')
     stevilka_osebne = request.forms.get('stevilka_osebne')
 
+    if modeli.podatki_uporabnika(uporabnisko_ime) != None:
+        return template('registracija', napaka = "Uporabniško ime je že zasedeno!")
+
     sol = random.randint(1, 100000000)
     prijavni_zeton = pomozne.kriptiraj_geslo(geslo, sol)
 
     modeli.dodaj_uporabnika(ime, 1, priimek, email, stevilka_osebne, uporabnisko_ime, prijavni_zeton, sol, Uporabnik.NAVADEN)
 
-    return template('registracija')
+    pomozne.dodaj_uporabnika_v_sejo(uporabnisko_ime)
+
+    return redirect('/')
+
+@get('/odjava')
+def odjava():
+    pomozne.vrni_sejo()
+    pomozne.odjavi_uporabnika()
+    return redirect('/')
 
 @get('/prijava')
 def prijava():
@@ -74,6 +88,12 @@ def prijava_post():
         return template('prijava')
 
     pomozne.dodaj_uporabnika_v_sejo(uporabnisko_ime)
+    
+    pack = pomozne.vrni_podatke_iz_seje()
+    if pack != None and pack['kolo'] != None:
+        modeli.dodaj_rezervacijo(pack['datum_od'], pack['datum_do'], pack['kolo'], pack['lokacija'], uporabnik['id'])
+        pomozne.pobrisi_izbiro()
+        return redirect('/zakljucek')
 
     if uporabnik['tip'] == Uporabnik.ADMINISTRATOR:
         return redirect('/admin')
@@ -112,6 +132,7 @@ def rezervacija():
     kolo = request.forms.get('kolo')
     pack = pomozne.vrni_podatke_iz_seje()
     pack['kolo'] = kolo
+    pomozne.dodaj_podatke_v_sejo(pack)
 
     uporabnisko_ime = pomozne.vrni_uporabnika_iz_seje()
     if uporabnisko_ime == None:
@@ -120,8 +141,14 @@ def rezervacija():
     uporabnik = modeli.podatki_uporabnika(uporabnisko_ime)
 
     modeli.dodaj_rezervacijo(pack['datum_od'], pack['datum_do'], pack['kolo'], pack['lokacija'], uporabnik['id'])
+    pomozne.pobrisi_izbiro()
 
-    return redirect('/')
+    return redirect('/zakljucek')
+
+@get('/zakljucek')
+def zakljucek():
+    pomozne.vrni_sejo()
+    return template('zakljucek')
 
 @get('/admin')
 def admin():
@@ -151,14 +178,26 @@ def izposodi():
 
     if 'izposodi' in request.POST:
         rez = request.forms.get('izposodi')
-        modeli.izposodi_rezervacijo(rez)
+        modeli.izposodi_rezervacijo(rez, datetime.now().strftime('%Y-%m-%d'))
     elif 'prestavi' in request.POST:
         kolo = request.forms.get('prestavi')
         modeli.prestavi_kolo(kolo, uporabnik['lokacija'])
     elif 'vrni' in request.POST:
         iz = request.forms.get('vrni')
-        modeli.zakljuci_izposojo(iz)
+        modeli.zakljuci_izposojo(iz, datetime.now().strftime('%Y-%m-%d'))
     
     return redirect('/admin')
+
+@get('/statistika')
+def statistika():
+    pomozne.vrni_sejo()
+
+    uporabnisko_ime = pomozne.vrni_uporabnika_iz_seje()
+    uporabnik = modeli.podatki_uporabnika(uporabnisko_ime)
+
+    if uporabnik == None or uporabnik['tip'] != Uporabnik.ADMINISTRATOR:
+        return redirect('/')
+
+    return template('statistika', podatki = modeli.statistika(uporabnik['lokacija']))
 
 run(reloader=True, debug=True)

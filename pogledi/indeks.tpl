@@ -2,6 +2,16 @@
 
 <h1 class="title">Pozdravljeni!</h1>
 
+<div class="columns">
+% if uporabnik != None:
+<div class="column"><h1 class="subtitle">{{ uporabnik['ime'] }} {{ uporabnik['priimek'] }}</h1></div>
+<div class="column"><form action="/odjava"><button class="button">Odjava</button></form></div>
+% else:
+<div class="column"><form action="/prijava"><button class="button">Prijava</button></form></div>
+<div class="column"><form action="/registracija"><button class="button">Registracija</button></form></div>
+% end
+</div>
+
 <h1 class="title">Kdaj želite kolo?</h1>
 
 <input type="date" name="datum" data-display-mode="inline"/>
@@ -33,7 +43,7 @@ calendars.on('select', function(dat) {
         <p>{{ lokacija['posta'] }} {{ lokacija['kraj'] }}</p>
         <iframe width="450" height="250" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="http://maps.google.com/maps?ll={{ lokacija['zemljepisna_sirina'] }},{{ lokacija['zemljepisna_dolzina'] }}&z=15&output=embed"></iframe>
         <p>
-            <button type="submit" name="lokacija" class="button is-primary" value="{{ lokacija['id'] }}">Tukaj!</button>
+            <button type="submit" name="lokacija" class="button" value="{{ lokacija['id'] }}">Tukaj!</button>
         </p>
     </div>
 % end

@@ -28,6 +28,10 @@ def dodaj_uporabnika_v_sejo(uporabnik):
     global seje
     seje[vrni_sejo()]['uporabnik'] = uporabnik
 
+def odjavi_uporabnika():
+    global seje
+    seje[vrni_sejo()]['uporabnik'] = None
+
 def vrni_uporabnika_iz_seje():
     global seje
 
@@ -46,6 +50,10 @@ def vrni_podatke_iz_seje():
     global seje
 
     id = vrni_sejo()
-    if id in seje:
+    if id in seje and 'podatki' in seje[id]:
         return seje[id]['podatki']
     return None
+
+def pobrisi_izbiro():
+    global seje
+    seje[vrni_sejo()]['podatki'] = None

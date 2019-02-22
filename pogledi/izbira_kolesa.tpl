@@ -27,7 +27,7 @@
     <td>{{ kolo['velikost'] }}</td>
     <td><figure class="image"><img src="slike/{{ kolo['slika'] }}"></figure></td>
     <td>
-        <button type="submit" name="kolo" class="button is-primary" value="{{ kolo['id'] }}">Izberi!</button>
+        <button type="submit" name="kolo" class="button" value="{{ kolo['id'] }}">Izberi!</button>
     </td>
 </tr>
 % end

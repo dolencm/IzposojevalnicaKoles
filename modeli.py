@@ -121,10 +121,10 @@ def vrni_izposoje(id):
             join kolesa k on i.kolo = k.id
             join uporabniki u on i.uporabnik = u.id
         WHERE
-            i.lokacija = ? and status = 0
+            i.lokacija = ? and status = ?
         ORDER BY
             i.datum_do asc
-    """, [id]).fetchall()
+    """, [id, Izposoja.AKTIVNA]).fetchall()
 
 def dodaj_rezervacijo(datum_od, datum_do, kolo, lokacija, uporabnik):
     # Ustvari rezervacijo kolesa za uporabnika
@@ -136,7 +136,7 @@ def dodaj_rezervacijo(datum_od, datum_do, kolo, lokacija, uporabnik):
                 (?, ?, ?, ?, ?)
         """, [datum_od, datum_do, kolo, lokacija, uporabnik])
 
-def izposodi_rezervacijo(id):
+def izposodi_rezervacijo(id, datum):
     # Izposodi rezervirano kolo
     with conn:
         rez = conn.execute("""
@@ -150,14 +150,14 @@ def izposodi_rezervacijo(id):
                 (datum_od, datum_do, status, kolo, lokacija, uporabnik)
             VALUES
                 (?, ?, ?, ?, ?, ?)
-        """, [rez['datum_od'], rez['datum_do'], Izposoja.AKTIVNA, rez['kolo'], rez['lokacija'], rez['uporabnik']])
+        """, [datum, rez['datum_do'], Izposoja.AKTIVNA, rez['kolo'], rez['lokacija'], rez['uporabnik']])
 
-def zakljuci_izposojo(id):
+def zakljuci_izposojo(id, datum):
     # Označi izposojo za zaključeno
     with conn:
         conn.execute("""
-            UPDATE izposoje SET status = 1 WHERE id = ?
-        """, [id])
+            UPDATE izposoje SET status = ?, datum_do = ? WHERE id = ?
+        """, [Izposoja.ZAKLJUCENA, datum, id])
 
 def prestavi_kolo(id, loc):
     # Prestavi kolo na novo lokacijo
@@ -165,3 +165,18 @@ def prestavi_kolo(id, loc):
         conn.execute("""
             UPDATE kolesa SET lokacija = ? WHERE id = ?
         """, [loc, id])
+
+def statistika(loc):
+    # Vrne podatke o zaključenih izposojah na lokaciji
+    return conn.execute("""
+            SELECT
+                i.datum_od, i.datum_do, k.znamka, k.model, u.ime, u.priimek
+            FROM
+                izposoje i
+                join kolesa k on i.kolo = k.id
+                join uporabniki u on i.uporabnik = u.id
+            WHERE
+                i.lokacija = ? AND i.status = ?
+            ORDER BY
+                i.datum_od DESC
+        """, [loc, Izposoja.ZAKLJUCENA]).fetchall()

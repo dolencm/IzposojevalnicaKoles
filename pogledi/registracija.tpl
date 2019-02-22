@@ -1,4 +1,11 @@
 % rebase('osnova')
+
+% if napaka != None:
+<h1 class="title">Napaka!</h1>
+<h1 class="subtitle has-text-danger">{{ napaka }}</h1>
+<br>
+% end
+
 <h1 class="title">Registracija novega uporabnika</h1>
 
 <div class="columns">
